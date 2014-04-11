@@ -18,6 +18,3 @@ class SocNetGithub():
 		self.pointer = Github(self.username, self.password)
 		self.user = self.pointer.get_user()
 	
-		
-
-	
