@@ -1,5 +1,3 @@
-__author = "Pranav Raj"
-__email = "pranav09032@hotmail.com"
 
 import simplejson as json
 import urllib
@@ -17,8 +15,7 @@ class Facebook ():
     def urlRead(self, url):
 
         try:
-            response = self.urlRead(url)
-            return response
+            return self.urlRead(url)
         except ConnectionError:
             raise Exception("Connection Exception")
 
@@ -34,15 +31,15 @@ class Facebook ():
 
     def userInformation(self, fbUser="me"):
 
-        profile = self.readTag(fbUser, "")
-        self.id = profile.get("id", None)
-        self.name = profile.get("name", None)
+        profile = self.readTag(fbUser)
+        self.id = profile.get("id")
+        self.name = profile.get("name")
         if self.id and self.name:
             user = dict(key_name=str(profile["id"]),
                         id=str(profile["id"]),
                         name=profile["name"],
                         accessToken=self.accessToken,
-                        profile_url=profile.get("link", None))
+                        profile_url=profile.get("link"))
             return user
         raise Exception("Profile id or name is None")
 
@@ -51,7 +48,7 @@ class Facebook ():
         friendsInfo = self.readTag(fbUser, "friends")
         friends = []
         for pages in range(maxParsedPages):
-            paging = friendsInfo.get("paging", None)
+            paging = friendsInfo.get("paging")
             if not paging:
                 raise Exception("Paging Error")
             if "next" in paging:
@@ -66,14 +63,14 @@ class Facebook ():
         userFeeds = self.readTag(fbUser, "feed")
         userWall = []
         for pages in range(maxParsedPages):
-            feed = userFeeds.get("userWall", None)
+            feed = userFeeds.get("userWall")
             if not feed:
                 break
             userWall += feed
-            paging = userFeeds.get("paging", None)
+            paging = userFeeds.get("paging")
             if not paging:
                 break
-            nextUrl = paging.get("next", None)
+            nextUrl = paging.get("next")
             if not nextUrl:
                 break
             userFeeds = json.load(
@@ -138,10 +135,10 @@ class Facebook ():
         for pages in range(maxParsedPages):
             userProperty += [obj[fbPropertyTag]
                              for obj in userRawProperty["data"]]
-            paging = userRawProperty.get("paging", None)
+            paging = userRawProperty.get("paging")
             if not paging:
                 break
-            nextUrl = paging.get("next", None)
+            nextUrl = paging.get("next")
             if not nextUrl:
                 break
             userRawProperty = json.load(
