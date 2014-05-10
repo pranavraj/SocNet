@@ -130,12 +130,14 @@ class Facebook ():
 
         return self.__getUserComment(fbUser, "likes")
 
-    def __getUserInfo(self, fbUser, fbProperty, maxParsedPages=4):
+    def __getUserInfo(self, fbUser, fbProperty,
+                      maxParsedPages=4, fbPropertyTag="name"):
 
         userRawProperty = self.readTag(fbUser, fbProperty)
         userProperty = []
         for pages in range(maxParsedPages):
-            userProperty += [obj["name"] for obj in userRawProperty["data"]]
+            userProperty += [obj[fbPropertyTag]
+                             for obj in userRawProperty["data"]]
             paging = userRawProperty.get("paging", None)
             if not paging:
                 break
@@ -197,25 +199,14 @@ class Facebook ():
 
     def getUserPlaces(self, fbUser="me"):
 
-        user_places = self.readTag(fbUser, "locations")
-        returnData = {}
-
-        while True:
-
-            try:
-                tempData = [x["place"]["name"] for x in user_places["data"]]
-                for place in tempData:
-                    if place in returnData:
-                        returnData[place] = returnData[place] + 1
-                    else:
-                        returnData[place] = 0
-                user_places = json.load(
-                    self.urlRead(
-                        user_places["paging"]["next"]))
-            except:
-                break
-
-        return returnData
+        rawPlaceData = self.__getUserInfo(
+            fbUser,
+            "locations",
+            fbPropertyTag="place")
+        rawPlaceData = [place["name"] for place in rawPlaceData]
+        placeData = {place: rawPlaceData.count(place)
+                     for place in rawPlaceData}
+        return placeData
 
 if __name__ == "__main__":
     fb = Facebook("")
