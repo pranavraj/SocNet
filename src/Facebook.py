@@ -14,36 +14,38 @@ class Facebook ():
         self.name = None
         self.baseUrl = "https://graph.facebook.com/"
 
-    def user_information(self, fbUser="me"):
+    def readTag(self, user, tag=""):
+        return json.load(
+            urllib.urlopen(
+                self.baseUrl
+                + "/" + tag + "?"
+                + urllib.urlencode(
+                    dict(accessToken=
+                         self.accessToken))))
+
+    def userInformation(self, fbUser="me"):
         """
         returns User Information ; fbUser can be the facebook id of any user ;
         for the current user it is 'me'
         """
 
-        profile = json.load(
-            urllib.urlopen(
-                self.baseUrl
-                + fbUser + "?"
-                + urllib.urlencode(
-                    dict(accessToken=
-                         self.accessToken))))
+        profile = self.readTag(fbUser, "")
         self.id = str(profile["id"])
         self.name = str(profile["name"])
         user = dict(key_name=str(profile["id"]),
-                id=str(profile["id"]),
-                name=profile["name"],
-                accessToken=self.accessToken,
-                profile_url=profile["link"]
+                    id=str(profile["id"]),
+                    name=profile["name"],
+                    accessToken=self.accessToken,
+                    profile_url=profile["link"])
         return user
 
-    def get_friends(self, maxPage=4, fbUser="me"):
+    def getFriends(self, maxPage=4, fbUser="me"):
         """
         Gets the list of friends , maxPage : Pages need to be accessed ;
         4 can cober most of the friendlist ; will ensure that data is
         returned within 60 secs
         """
-        friends = json.load(urllib.urlopen(self.baseUrl + fbUser + "/friends?"
-            + urllib.urlencode(dict(accessToken=self.accessToken))))
+        friends = self.readTag(fbUser, "friends")
         Friends = []
         while "next" in friends["paging"]:
             if maxPage == 0:
@@ -53,13 +55,12 @@ class Facebook ():
             friends = json.load(urllib.urlopen(friends["paging"]["next"]))
         return Friends
 
-    def get_user_wall(self, max_pages=2, fbUser="me"):
+    def getUserWall(self, max_pages=2, fbUser="me"):
         """
         gets User Wall
         """
 
-        user_feeds = json.load(urllib.urlopen(self.baseUrl + fbUser + "/feed?"
-            + urllib.urlencode(dict(accessToken=self.accessToken))))
+        user_feeds = self.readTag(fbUser, "feed")
         Data = []
         while True:
             try:
@@ -73,23 +74,18 @@ class Facebook ():
                 break
         return Data
 
-    def get_user_comments_story(self, fbUser="me"):
+    def getUserCommentsStory(self, fbUser="me"):
         """
         gets User Comments
         """
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
-        returnData = []
-
-        for feed in UserWall:
-            if "story" in feed:
-                returnData.append(feed["story"])
-
+        UserWall = self.getUserWall(fbUser=fbUser)
+        returnData = [feed["story"] for feed in UserWall if "story" in feed]
         return returnData
 
-    def get_user_comments_picture(self, fbUser="me"):
+    def getUserCommentsPicture(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -98,9 +94,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_comments_from(self, fbUser="me"):
+    def getUserCommentsFrom(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -109,9 +105,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_comments_name(self, fbUser="me"):
+    def getUserCommentsName(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -120,9 +116,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_comments_caption(self, fbUser="me"):
+    def getUserCommentsCaption(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -131,9 +127,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_comments_description(self, fbUser="me"):
+    def getUserCommentsDescription(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -142,9 +138,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_comments_comments(self, fbUser="me"):
+    def getUserCommentsComments(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -153,9 +149,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_comments_updated_time(self, fbUser="me"):
+    def getUserCommentsUpdatedTime(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -164,9 +160,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_comments_type(self, fbUser="me"):
+    def getUserCommentsType(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -175,9 +171,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_comments_id(self, fbUser="me"):
+    def getUserCommentsId(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -186,9 +182,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_comments_likes(self, fbUser="me"):
+    def getUserCommentsLikes(self, fbUser="me"):
 
-        UserWall = self.get_user_wall(fbUser=fbUser)
+        UserWall = self.getUserWall(fbUser=fbUser)
         returnData = []
 
         for feed in UserWall:
@@ -197,15 +193,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_likes(self, fbUser="me"):
+    def getUserLikes(self, fbUser="me"):
 
-        user_likes = json.load(
-                                urllib.urlopen(
-                                                self.baseUrl
-                                              + fbUser + "/likes?"
-                                              + urllib.urlencode(
-                                                dict(accessToken
-                                                =self.accessToken))))
+        user_likes = self.readTag(fbUser, "likes")
         returnData = []
 
         while True:
@@ -219,11 +209,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_movies(self, fbUser="me"):
+    def getUserMovies(self, fbUser="me"):
 
-        user_movies = json.load(
-            urllib.urlopen(self.baseUrl + fbUser + "/movies?"
-                + urllib.urlencode(dict(accessToken=self.accessToken))))
+        user_movies = self.readTag(fbUser, "movies")
         returnData = []
 
         while True:
@@ -238,11 +226,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_music(self, fbUser="me"):
+    def getUserMusic(self, fbUser="me"):
 
-        user_music = json.load(
-            urllib.urlopen(self.baseUrl + fbUser + "/music?"
-                + urllib.urlencode(dict(accessToken=self.accessToken))))
+        user_music = self.readTag(fbUser, "music")
         returnData = []
 
         while True:
@@ -257,11 +243,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_books(self, fbUser="me"):
+    def getUserBooks(self, fbUser="me"):
 
-        user_book = json.load(
-            urllib.urlopen(self.baseUrl + fbUser + "/books?"
-                + urllib.urlencode(dict(accessToken=self.accessToken))))
+        user_book = self.readTag(fbUser, "books")
         returnData = []
 
         while True:
@@ -276,11 +260,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_notes(self, fbUser="me"):
+    def getUserNotes(self, fbUser="me"):
 
-        user_notes = json.load(
-            urllib.urlopen(self.baseUrl + fbUser + "/notes?"
-                + urllib.urlencode(dict(accessToken=self.accessToken))))
+        user_notes = self.readTag(fbUser, "notes")
         returnData = []
 
         while True:
@@ -295,11 +277,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_photos(self, fbUser="me"):
+    def getUserPhotos(self, fbUser="me"):
 
-        user_photos = json.load(
-            urllib.urlopen(self.baseUrl + fbUser + "/photos?"
-                + urllib.urlencode(dict(accessToken=self.accessToken))))
+        user_photos = self.readTag(fbUser, "photos")
         returnData = []
 
         while True:
@@ -314,11 +294,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_events(self, fbUser="me"):
+    def getUserEvents(self, fbUser="me"):
 
-        user_notes = json.load(
-            urllib.urlopen(self.baseUrl + fbUser + "/events?"
-                + urllib.urlencode(dict(accessToken=self.accessToken))))
+        user_notes = self.readTag(fbUser, "events")
         returnData = []
 
         while True:
@@ -334,9 +312,7 @@ class Facebook ():
 
     def get_user_groups(self, fbUser="me"):
 
-        user_notes = json.load(
-            urllib.urlopen(self.baseUrl + fbUser + "/groups?"
-                + urllib.urlencode(dict(accessToken=self.accessToken))))
+        user_notes = self.readTag(fbUser, "groups")
         returnData = []
 
         while True:
@@ -351,11 +327,9 @@ class Facebook ():
 
         return returnData
 
-    def get_user_places(self, fbUser="me"):
+    def getUserPlaces(self, fbUser="me"):
 
-        user_places = json.load(
-            urllib.urlopen(self.baseUrl + fbUser + "/locations?"
-                + urllib.urlencode(dict(accessToken=self.accessToken))))
+        user_places = self.readTag(fbUser, "locations")
         returnData = {}
 
         while True:
@@ -374,5 +348,5 @@ class Facebook ():
 
         return returnData
 
-if __name__ == "__main__" :
+if __name__ == "__main__":
     fb = Facebook("")
