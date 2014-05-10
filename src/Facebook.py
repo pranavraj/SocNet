@@ -19,7 +19,6 @@ class Facebook ():
         try:
             response = self.urlRead(url)
             return response
-
         except ConnectionError:
             raise Exception("Connection Exception")
 
@@ -38,46 +37,49 @@ class Facebook ():
         profile = self.readTag(fbUser, "")
         self.id = profile.get("id", None)
         self.name = profile.get("name", None)
-
         if self.id and self.name:
             user = dict(key_name=str(profile["id"]),
                         id=str(profile["id"]),
                         name=profile["name"],
                         accessToken=self.accessToken,
-                        profile_url=profile["link"])
+                        profile_url=profile.get("link", None))
             return user
-
         raise Exception("Profile id or name is None")
 
     def getFriends(self, maxParsedPages=4, fbUser="me"):
 
-        friends_info = self.readTag(fbUser, "friends")
+        friendsInfo = self.readTag(fbUser, "friends")
         friends = []
-        while "next" in friends_info["paging"]:
-            if not maxParsedPages:
+        for pages in range(maxParsedPages):
+            paging = friendsInfo.get("paging", None)
+            if not paging:
+                raise Exception("Paging Error")
+            if "next" in paging:
+                friends += friendsInfo.get("userWall", [])
+                friendsInfo = json.load(self.urlRead(paging["next"]))
+            else:
                 break
-            maxParsedPages -= 1
-            friends += friends_info["data"]
-            friends_info = json.load(
-                self.urlRead(
-                    friends_info["paging"]["next"]))
         return friends
 
-    def getUserWall(self, max_pages=2, fbUser="me"):
+    def getUserWall(self, maxParsedPages=2, fbUser="me"):
 
-        user_feeds = self.readTag(fbUser, "feed")
-        Data = []
-        while True:
-            try:
-                Data = Data + user_feeds["data"]
-                user_feeds = json.load(
-                    self.urlRead(user_feeds["paging"]["next"]))
-                max_pages = max_pages - 1
-                if max_pages < 1:
-                    break
-            except:
+        userFeeds = self.readTag(fbUser, "feed")
+        userWall = []
+        for pages in range(maxParsedPages):
+            feed = userFeeds.get("userWall", None)
+            if not feed:
                 break
-        return Data
+            userWall += feed
+            paging = userFeeds.get("paging", None)
+            if not paging:
+                break
+            nextUrl = paging.get("next", None)
+            if not nextUrl:
+                break
+            userFeeds = json.load(
+                self.urlRead(
+                    nextUrl))
+        return userWall
 
     def __getUserComment(self, fbUser, tag):
 
@@ -85,9 +87,7 @@ class Facebook ():
         return [feed[tag] for feed in UserWall if tag in feed]
 
     def getUserCommentsStory(self, fbUser="me"):
-        """
-        gets User Comments
-        """
+
         return self.__getUserComment(fbUser, "story")
 
     def getUserCommentsPicture(self, fbUser="me"):
@@ -130,140 +130,70 @@ class Facebook ():
 
         return self.__getUserComment(fbUser, "likes")
 
+    def __getUserInfo(self, fbUser, fbProperty, maxParsedPages=4):
+
+        userRawProperty = self.readTag(fbUser, fbProperty)
+        userProperty = []
+        for pages in range(maxParsedPages):
+            userProperty += [obj["name"] for obj in userRawProperty["data"]]
+            paging = userRawProperty.get("paging", None)
+            if not paging:
+                break
+            nextUrl = paging.get("next", None)
+            if not nextUrl:
+                break
+            userRawProperty = json.load(
+                self.urlRead(
+                    nextUrl))
+        return userProperty
+
     def getUserLikes(self, fbUser="me"):
 
-        user_likes = self.readTag(fbUser, "likes")
-        returnData = []
-
-        while True:
-            try:
-                returnData += [x["name"] for x in user_likes["data"]]
-                user_likes = json.load(
-                    self.urlRead(
-                        user_likes["paging"]["next"]))
-            except:
-                break
-
-        return returnData
+        return self.__getUserInfo(
+            fbUser,
+            "likes")
 
     def getUserMovies(self, fbUser="me"):
 
-        user_movies = self.readTag(fbUser, "movies")
-        returnData = []
-
-        while True:
-
-            try:
-                returnData += [x["name"] for x in user_movies["data"]]
-                user_movies = json.load(
-                    self.urlRead(
-                        user_movies["paging"]["next"]))
-            except:
-                break
-
-        return returnData
+        return self.__getUserInfo(
+            fbUser,
+            "movies")
 
     def getUserMusic(self, fbUser="me"):
 
-        user_music = self.readTag(fbUser, "music")
-        returnData = []
-
-        while True:
-
-            try:
-                returnData += [x["name"] for x in user_music["data"]]
-                user_music = json.load(
-                    self.urlRead(
-                        user_music["paging"]["next"]))
-            except:
-                break
-
-        return returnData
+        return self.__getUserInfo(
+            fbUser,
+            "music")
 
     def getUserBooks(self, fbUser="me"):
 
-        user_book = self.readTag(fbUser, "books")
-        returnData = []
-
-        while True:
-
-            try:
-                returnData += [x["name"] for x in user_book["data"]]
-                user_book = json.load(
-                    self.urlRead(
-                        user_book["paging"]["next"]))
-            except:
-                break
-
-        return returnData
+        return self.__getUserInfo(
+            fbUser,
+            "books")
 
     def getUserNotes(self, fbUser="me"):
 
-        user_notes = self.readTag(fbUser, "notes")
-        returnData = []
-
-        while True:
-
-            try:
-                returnData += [x["name"] for x in user_notes["data"]]
-                user_notes = json.load(
-                    self.urlRead(
-                        user_notes["paging"]["next"]))
-            except:
-                break
-
-        return returnData
+        return self.__getUserInfo(
+            fbUser,
+            "notes")
 
     def getUserPhotos(self, fbUser="me"):
 
-        user_photos = self.readTag(fbUser, "photos")
-        returnData = []
-
-        while True:
-
-            try:
-                returnData += [x["name"] for x in user_photos["data"]]
-                user_photos = json.load(
-                    self.urlRead(
-                        user_photos["paging"]["next"]))
-            except:
-                break
-
-        return returnData
+        return self.__getUserInfo(
+            fbUser,
+            "photos")
 
     def getUserEvents(self, fbUser="me"):
 
-        user_notes = self.readTag(fbUser, "events")
-        returnData = []
-
-        while True:
-
-            try:
-                returnData += [x for x in user_notes["data"]]
-                user_notes = json.load(
-                    self.urlRead(
-                        user_notes["paging"]["next"]))
-            except:
-                break
-
-        return returnData
+        return self.__getUserInfo(
+            fbUser,
+            "events")
 
     def get_user_groups(self, fbUser="me"):
 
-        user_notes = self.readTag(fbUser, "groups")
-        returnData = []
-
-        while True:
-
-            try:
-                returnData += [x["name"] for x in user_notes["data"]]
-                user_notes = json.load(
-                    self.urlRead(
-                        user_notes["paging"]["next"]))
-            except:
-                break
-
-        return returnData
+        return self.__getUserInfo(
+            fbUser,
+            "groups")
 
     def getUserPlaces(self, fbUser="me"):
 
